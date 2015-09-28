@@ -26,7 +26,7 @@ import (
 const (
 	defaultTimeLayout = "2006-01-02 15:04:05.999 -0700 MST"
 
-	keyField        = "key"
+	idField         = "id"
 	nameField       = "name"
 	importTimeField = "importtime"
 	latestField     = "latest"
@@ -35,7 +35,7 @@ const (
 var (
 	// map of valid fields and related flag value
 	imagesAllFields = map[string]struct{}{
-		keyField:        struct{}{},
+		idField:         struct{}{},
 		nameField:       struct{}{},
 		importTimeField: struct{}{},
 		latestField:     struct{}{},
@@ -43,7 +43,7 @@ var (
 
 	// map of valid fields and related header name
 	ImagesFieldHeaderMap = map[string]string{
-		keyField:        "KEY",
+		idField:         "ID",
 		nameField:       "NAME",
 		importTimeField: "IMPORT TIME",
 		latestField:     "LATEST",
@@ -52,7 +52,7 @@ var (
 	// map of valid sort fields containing the mapping between the provided field name
 	// and the related aciinfo's field name.
 	ImagesFieldAciInfoMap = map[string]string{
-		keyField:        "blobkey",
+		idField:         "blobkey",
 		nameField:       "name",
 		importTimeField: "importtime",
 		latestField:     "latest",
@@ -164,12 +164,12 @@ var (
 
 func init() {
 	// Set defaults
-	flagImagesFields = []string{keyField, nameField, importTimeField, latestField}
+	flagImagesFields = []string{idField, nameField, importTimeField, latestField}
 	flagImagesSortFields = []string{importTimeField}
 	flagImagesSortAsc = true
 
 	cmdImage.AddCommand(cmdImageList)
-	cmdImageList.Flags().Var(&flagImagesFields, "fields", `comma separated list of fields to display. Accepted values: "key", "name", "importtime", "latest"`)
+	cmdImageList.Flags().Var(&flagImagesFields, "fields", `comma separated list of fields to display. Accepted values: "id", "name", "importtime", "latest"`)
 	cmdImageList.Flags().Var(&flagImagesSortFields, "sort", `sort the output according to the provided comma separated list of fields. Accepted values: "name", "importtime"`)
 	cmdImageList.Flags().Var(&flagImagesSortAsc, "order", `choose the sorting order if at least one sort field is provided (--sort). Accepted values: "asc", "desc"`)
 	cmdImageList.Flags().BoolVar(&flagNoLegend, "no-legend", false, "suppress a legend with the list")
@@ -210,18 +210,18 @@ func runImages(cmd *cobra.Command, args []string) (exit int) {
 		version, ok := im.Labels.Get("version")
 		for _, f := range flagImagesFields {
 			switch f {
-			case keyField:
-				hashKey := aciInfo.BlobKey
+			case idField:
+				imageId := aciInfo.BlobKey
 				if !flagFullOutput {
 					// The short hash form is [HASH_ALGO]-[FIRST 12 CHAR]
 					// For example, sha512-123456789012
-					pos := strings.Index(hashKey, "-")
+					pos := strings.Index(imageId, "-")
 					trimLength := pos + 13
-					if pos > 0 && trimLength < len(hashKey) {
-						hashKey = hashKey[:trimLength]
+					if pos > 0 && trimLength < len(imageId) {
+						imageId = imageId[:trimLength]
 					}
 				}
-				fmt.Fprintf(tabOut, "%s", hashKey)
+				fmt.Fprintf(tabOut, "%s", imageId)
 			case nameField:
 				fmt.Fprintf(tabOut, "%s", aciInfo.Name)
 				if ok {

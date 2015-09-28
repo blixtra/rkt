@@ -62,7 +62,7 @@ var diskvStores = [...]string{
 }
 
 var (
-	ErrKeyNotFound = errors.New("no keys found")
+	ErrKeyNotFound = errors.New("image id not found")
 )
 
 // ACINotFoundError is returned when an ACI cannot be found by GetACI
@@ -240,10 +240,10 @@ func (s Store) TmpDir() (string, error) {
 // If the key is longer than the full key length, it is first truncated.
 func (s Store) ResolveKey(key string) (string, error) {
 	if !strings.HasPrefix(key, hashPrefix) {
-		return "", fmt.Errorf("wrong key prefix")
+		return "", fmt.Errorf("wrong image id prefix")
 	}
 	if len(key) < minlenKey {
-		return "", fmt.Errorf("key too short")
+		return "", fmt.Errorf("image id too short")
 	}
 	if len(key) > lenKey {
 		key = key[:lenKey]
@@ -264,7 +264,7 @@ func (s Store) ResolveKey(key string) (string, error) {
 		return "", ErrKeyNotFound
 	}
 	if keyCount != 1 {
-		return "", fmt.Errorf("ambiguous key: %q", key)
+		return "", fmt.Errorf("ambiguous image id: %q", key)
 	}
 	return aciInfos[0].BlobKey, nil
 }
@@ -272,7 +272,7 @@ func (s Store) ResolveKey(key string) (string, error) {
 func (s Store) ReadStream(key string) (io.ReadCloser, error) {
 	key, err := s.ResolveKey(key)
 	if err != nil {
-		return nil, fmt.Errorf("error resolving key: %v", err)
+		return nil, fmt.Errorf("error resolving image id: %v", err)
 	}
 	keyLock, err := lock.SharedKeyLock(s.imageLockDir, key)
 	if err != nil {
@@ -373,7 +373,7 @@ func (ds Store) RemoveACI(key string) error {
 		if _, found, err := GetACIInfoWithBlobKey(tx, key); err != nil {
 			return fmt.Errorf("error getting aciinfo: %v", err)
 		} else if !found {
-			return fmt.Errorf("cannot find image with key: %s", key)
+			return fmt.Errorf("cannot find image with id: %s", key)
 		}
 
 		if err := RemoveACIInfo(tx, key); err != nil {
@@ -385,7 +385,7 @@ func (ds Store) RemoveACI(key string) error {
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("cannot remove image with key: %s from db: %v", key, err)
+		return fmt.Errorf("cannot remove image with id: %s from db: %v", key, err)
 	}
 
 	// Then remove non transactional entries from the blob, imageManifest
@@ -507,7 +507,7 @@ func (s Store) WriteRemote(remote *Remote) error {
 func (s Store) GetImageManifest(key string) (*schema.ImageManifest, error) {
 	key, err := s.ResolveKey(key)
 	if err != nil {
-		return nil, fmt.Errorf("error resolving key: %v", err)
+		return nil, fmt.Errorf("error resolving image id: %v", err)
 	}
 	keyLock, err := lock.SharedKeyLock(s.imageLockDir, key)
 	if err != nil {
@@ -624,7 +624,7 @@ func (s Store) Dump(hex bool) {
 			fmt.Printf("%s/%s: %s\n", s.BasePath, key, out)
 			keyCount++
 		}
-		fmt.Printf("%d total keys\n", keyCount)
+		fmt.Printf("%d total image id(s)\n", keyCount)
 	}
 }
 

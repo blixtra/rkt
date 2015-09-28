@@ -51,7 +51,12 @@ func runList(cmd *cobra.Command, args []string) (exit int) {
 	}
 
 	if !flagNoLegend {
-		fmt.Fprintf(tabOut, "UUID\tAPP\tACI\tSTATE\tNETWORKS\n")
+		headers := "UUID\tAPP\tIMAGE\t{XYZ}STATE\tNETWORKS"
+		imgIDHeader := ""
+		if flagFullOutput {
+			imgIdHeader = "IMAGE ID\t"
+		}
+		fmt.Fprintf(tabOut, strings.Replace(headers, "{XYZ}", imgIdHeader))
 	}
 
 	if err := walkPods(includeMostDirs, func(p *pod) {
