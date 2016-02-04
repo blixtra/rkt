@@ -104,6 +104,7 @@ var (
 	localhostIP  net.IP
 	localConfig  string
 	log          *rktlog.Logger
+	diag         *rktlog.Logger
 )
 
 func init() {
@@ -390,7 +391,7 @@ func getArgsEnv(p *stage1commontypes.Pod, flavor string, debug bool, n *networki
 		keepUnit, err := util.RunningFromSystemService()
 		if err != nil {
 			if err == util.ErrSoNotFound {
-				log.Print("warning: libsystemd not found even though systemd is running. Cgroup limits set by the environment (e.g. a systemd service) won't be enforced.")
+				diag.Print("warning: libsystemd not found even though systemd is running. Cgroup limits set by the environment (e.g. a systemd service) won't be enforced.")
 			} else {
 				return nil, nil, errwrap.Wrap(errors.New("error determining if we're running from a system service"), err)
 			}
@@ -468,7 +469,7 @@ func forwardedPorts(pod *stage1commontypes.Pod) ([]networking.ForwardedPort, err
 func stage1() int {
 	uuid, err := types.NewUUID(flag.Arg(0))
 	if err != nil {
-		log.Print("UUID is missing or malformed")
+		log.PrintE("UUID is missing or malformed", err)
 		return 1
 	}
 
@@ -735,9 +736,11 @@ func getContainerSubCgroup(machineID string) (string, error) {
 func main() {
 	flag.Parse()
 
-	log = rktlog.New(os.Stderr, "stage1", debug)
+	stage1initcommon.InitDebug(debug)
+
+	log, diag, _ = rktlog.NewLogSet("stage1", debug)
 	if !debug {
-		log.SetOutput(ioutil.Discard)
+		diag.SetOutput(ioutil.Discard)
 	}
 
 	// move code into stage1() helper so deferred fns get run
