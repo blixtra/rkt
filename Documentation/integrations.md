@@ -19,3 +19,5 @@ This document tracks projects that integrate with rkt. [Join the community](http
 [Linux](https://coreos.com/rkt/docs/latest/distributions.html): an open and extensible OS. rkt is included in the package managers on Red Hat, Ubuntu, and many other popular Linux distributions.
 
 [cAdvisor](https://github.com/google/cadvisor): a daemon that monitors resource usage and performance for running containers.
+
+[Habitat](https://www.habitat.sh): an application automation framework that builds applications with automation built-in. It can [export ACI images](https://www.habitat.sh/docs/run-packages-export/#exporting-to-an-application-container-image-aci) for use with rkt.
